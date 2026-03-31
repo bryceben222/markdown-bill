@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简记账</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航区 -->
+        <header class="nav-header">
+            <h1 class="app-title">极简记账</h1>
+            <div class="nav-actions">
+                <button class="settings-btn" id="statsBtn">
+                    <i class="fas fa-chart-pie"></i>
+                </button>
+                <button class="settings-btn" id="settingsBtn">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 统计展示区 -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card expense">
+                    <span class="stat-label">今日支出</span>
+                    <span class="stat-value" id="todayExpense">¥0.00</span>
+                </div>
+                <div class="stat-card income">
+                    <span class="stat-label">今日收入</span>
+                    <span class="stat-value" id="todayIncome">¥0.00</span>
+                </div>
+                <div class="stat-card expense">
+                    <span class="stat-label">本月支出</span>
+                    <span class="stat-value" id="monthExpense">¥0.00</span>
+                </div>
+                <div class="stat-card income">
+                    <span class="stat-label">本月收入</span>
+                    <span class="stat-value" id="monthIncome">¥0.00</span>
+                </div>
+            </div>
+            <!-- 分类占比 -->
+            <div class="category-stats" id="categoryStats">
+                <div class="category-title">本月支出分类</div>
+                <div class="category-list" id="categoryList"></div>
+            </div>
+        </section>
+
+        <!-- 记账表单区 -->
+        <section class="form-section">
+            <div class="form-row">
+                <div class="form-group">
+                    <select id="typeSelect" class="glass-select">
+                        <option value="expense">支出</option>
+                        <option value="income">收入</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select id="categorySelect" class="glass-select">
+                        <option value="餐饮">餐饮</option>
+                        <option value="交通">交通</option>
+                        <option value="购物">购物</option>
+                        <option value="娱乐">娱乐</option>
+                        <option value="日用品">日用品</option>
+                        <option value="医疗">医疗</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <input type="number" id="amountInput" class="glass-input" placeholder="请输入金额" step="0.01" min="0">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <input type="text" id="noteInput" class="glass-input" placeholder="备注（可选）" maxlength="50">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <input type="date" id="dateInput" class="glass-input">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i> 保存记录
+                </button>
+            </div>
+        </section>
+
+        <!-- 账单列表区 -->
+        <section class="list-section">
+            <div class="list-header">
+                <h2 class="list-title">最近记录</h2>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="month">本月</button>
+                    <button class="filter-tab" data-filter="today">今日</button>
+                </div>
+            </div>
+            <div class="records-list" id="recordsList">
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <p>暂无记录，开始记账吧～</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h3>设置</h3>
+                <button class="modal-close" id="closeSettings">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <span class="setting-label">货币单位</span>
+                    <select id="currencySelect" class="glass-select">
+                        <option value="¥">人民币 (¥)</option>
+                        <option value="$">美元 ($)</option>
+                        <option value="€">欧元 (€)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">深色模式</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item danger">
+                    <button class="btn btn-danger" id="clearAllBtn">
+                        <i class="fas fa-trash-alt"></i> 清空所有数据
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认框 -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content glass-modal confirm-modal">
+            <div class="modal-body">
+                <i class="fas fa-exclamation-circle warning-icon"></i>
+                <p>确定删除该记录？</p>
+                <div class="confirm-actions">
+                    <button class="btn btn-secondary" id="cancelDelete">取消</button>
+                    <button class="btn btn-danger" id="confirmDelete">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 清空数据确认框 -->
+    <div class="modal-overlay" id="clearModal">
+        <div class="modal-content glass-modal confirm-modal">
+            <div class="modal-body">
+                <i class="fas fa-exclamation-triangle warning-icon"></i>
+                <p>确定清空所有数据？<br>此操作不可恢复</p>
+                <div class="confirm-actions">
+                    <button class="btn btn-secondary" id="cancelClear">取消</button>
+                    <button class="btn btn-danger" id="confirmClear">确定清空</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计分析面板 -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal-content glass-modal stats-modal">
+            <div class="modal-header">
+                <h3>统计分析</h3>
+                <button class="modal-close" id="closeStats">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- 日期范围选择 -->
+                <div class="date-range-section">
+                    <div class="date-range-inputs">
+                        <input type="date" id="startDate" class="glass-input" placeholder="开始日期">
+                        <input type="date" id="endDate" class="glass-input" placeholder="结束日期">
+                    </div>
+                    <button class="btn btn-primary small" id="applyDateRange">
+                        <i class="fas fa-calendar-check"></i> 应用
+                    </button>
+                </div>
+
+                <!-- 概览统计 -->
+                <div class="overview-stats">
+                    <div class="stat-card expense">
+                        <span class="stat-label">总支出</span>
+                        <span class="stat-value" id="totalExpense">¥0.00</span>
+                    </div>
+                    <div class="stat-card income">
+                        <span class="stat-label">总收入</span>
+                        <span class="stat-value" id="totalIncome">¥0.00</span>
+                    </div>
+                    <div class="stat-card balance">
+                        <span class="stat-label">结余</span>
+                        <span class="stat-value" id="balance">¥0.00</span>
+                    </div>
+                    <div class="stat-card count">
+                        <span class="stat-label">记录数</span>
+                        <span class="stat-value" id="recordCount">0</span>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="charts-section">
+                    <!-- 支出分类饼图 -->
+                    <div class="chart-container">
+                        <h4>支出分类占比</h4>
+                        <canvas id="expensePieChart" width="400" height="300"></canvas>
+                    </div>
+
+                    <!-- 收支趋势柱状图 -->
+                    <div class="chart-container">
+                        <h4>收支趋势</h4>
+                        <canvas id="trendChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- 月度对比 -->
+                    <div class="chart-container">
+                        <h4>月度对比</h4>
+                        <canvas id="monthlyChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
